@@ -1,0 +1,8 @@
+services:
+  canopend:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.scratch
+    image: metrol/canopend
+    network_mode: host
+    command: vcan0 -i 1-c "tcp-60000"
