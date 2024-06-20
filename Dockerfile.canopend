@@ -1,0 +1,31 @@
+# use alpine as base image
+FROM ubuntu as build-env
+# install build-base meta package inside build-env container
+RUN apt-get update && apt-get install build-essential -y --no-install-recommends
+
+# # use alpine as base image
+# FROM alpine as build-env
+# # install build-base meta package inside build-env container
+# RUN apk add --no-cache build-base
+
+
+# change directory to /app
+WORKDIR /app
+# copy all files from current directory inside the build-env container
+COPY . .
+# change directory to /app/CANopenLinux
+WORKDIR /app/CANopenLinux
+# Compile the source code and generate hello binary executable file
+RUN make
+
+
+# use another container to run the program
+FROM ubuntu
+RUN apt-get update && apt-get install net-tools iproute2 can-utils -y --no-install-recommends
+# copy binary executable to new container
+COPY --from=build-env /app/CANopenLinux/canopend /app/canopend
+COPY --from=build-env /app/entrypoint-canopend.sh /app/entrypoint-canopend.sh
+WORKDIR /app
+RUN chmod +x entrypoint-canopend.sh
+# at last run the program
+CMD ["/app/entrypoint-canopend.sh"] 
